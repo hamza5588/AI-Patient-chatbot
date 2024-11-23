@@ -5,3 +5,4 @@ langchain-google-genai
 langchain-community
 langchain-core
 faiss-cpu
+gunicorn==21.2.0
