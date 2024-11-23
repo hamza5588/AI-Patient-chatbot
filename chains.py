@@ -28,7 +28,22 @@ system_prompt = (
 )
 
 # Load your vectorstore
-vector_store = FAISS.load_local(r"content\faissindexupdate5", embeddings, allow_dangerous_deserialization=True)
+# vector_store = FAISS.load_local(r"content\faissindexupdate5", embeddings, allow_dangerous_deserialization=True)
+import os
+from pathlib import Path
+
+# Get the current file's directory
+current_dir = Path(__file__).parent
+
+# Construct path relative to current directory
+faiss_path = os.path.join(current_dir, "content", "faissindexupdate5")
+
+# Load your vectorstore with dynamic path
+vector_store = FAISS.load_local(
+    folder_path=faiss_path,  
+    embeddings=embeddings, 
+    allow_dangerous_deserialization=True
+)
 
 # Create document chain
 document_chain = create_stuff_documents_chain(chat_model, prompt_template)
