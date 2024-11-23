@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Patient Chatbot</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            background-color: #f0f8ff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .chat-container {
+            width: 100%;
+            max-width: 450px;
+            background-color: #fff;
+            border-radius: 20px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            height: 80vh;
+        }
+
+        .chat-box {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background-color: #f4f9fc;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .input-container {
+            display: flex;
+            padding: 15px;
+            background-color: #ffffff;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        #user-input {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            background-color: #f0f4f7;
+            border-radius: 25px;
+            font-size: 16px;
+            color: #333;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        #user-input:focus {
+            outline: none;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        #send-btn {
+            background-color: #0069d9;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            cursor: pointer;
+            margin-left: 10px;
+            border-radius: 25px;
+            font-size: 16px;
+            transition: background-color 0.3s ease, transform 0.3s ease;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        #send-btn:hover {
+            background-color: #0056b3;
+            transform: translateY(-2px);
+        }
+
+        .message {
+            margin-bottom: 15px;
+            padding: 15px 20px;
+            border-radius: 25px;
+            max-width: 75%;
+            font-size: 15px;
+            line-height: 1.4;
+            position: relative;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .user-message {
+            background-color: #0069d9;
+            color: white;
+            align-self: flex-end;
+            border-bottom-right-radius: 0;
+            box-shadow: 0 4px 8px rgba(0, 105, 217, 0.2);
+        }
+
+        .bot-message {
+            background-color: #e0f7fa;
+            color: #333;
+            align-self: flex-start;
+            border-bottom-left-radius: 0;
+            border: 1px solid #b2ebf2;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .message:after {
+            content: "";
+            position: absolute;
+            bottom: 0;
+            border-width: 12px;
+            border-style: solid;
+        }
+
+        .user-message:after {
+            right: -12px;
+            border-color: transparent transparent transparent #0069d9;
+        }
+
+        .bot-message:after {
+            left: -12px;
+            border-color: transparent #e0f7fa transparent transparent;
+        }
+
+        .chat-box::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .chat-box::-webkit-scrollbar-thumb {
+            background-color: #0069d9;
+            border-radius: 4px;
+        }
+
+        .chat-box::-webkit-scrollbar-track {
+            background-color: #f4f9fc;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Subtle animations */
+        .message {
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeIn 0.4s forwards;
+        }
+
+        .message.bot-message {
+            background-color: #f1f8ff;
+            border-left: 4px solid #42a5f5;
+        }
+
+    </style>
+</head>
+
+<body>
+    <div class="chat-container">
+        <div class="chat-box" id="chat-box">
+            <!-- Chat messages will be appended here dynamically -->
+        </div>
+        <div class="input-container">
+            <input type="text" id="user-input" placeholder="How can I assist you today?" autocomplete="off">
+            <button id="send-btn">Send</button>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            // Send the user's input to the backend on button click or 'Enter' press
+            $('#send-btn').on('click', sendMessage);
+            $('#user-input').on('keypress', function (e) {
+                if (e.which === 13) {
+                    sendMessage();
+                }
+            });
+
+            function sendMessage() {
+                let userMessage = $('#user-input').val().trim();
+                if (userMessage === "") return;
+
+                // Add user message to the chat
+                $('#chat-box').append(`<div class="message user-message">${userMessage}</div>`);
+                $('#user-input').val('');  // Clear input field
+
+                // Scroll to the bottom of the chatbox
+                $('#chat-box').scrollTop($('#chat-box')[0].scrollHeight);
+
+                // Send the message to the backend via AJAX
+                $.ajax({
+                    url: '/chat',
+                    method: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({
+                        input: userMessage,
+                        session_id: "default_session"  // or you can generate session IDs dynamically
+                    }),
+                    success: function (response) {
+                        // Add bot response to the chat
+                        $('#chat-box').append(`<div class="message bot-message">${response.response}</div>`);
+                        $('#chat-box').scrollTop($('#chat-box')[0].scrollHeight);  // Scroll to bottom
+                    },
+                    error: function () {
+                        // Handle error
+                        $('#chat-box').append(`<div class="message bot-message">Error: Failed to get a response</div>`);
+                        $('#chat-box').scrollTop($('#chat-box')[0].scrollHeight);  // Scroll to bottom
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+
+</html>

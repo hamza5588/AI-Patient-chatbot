@@ -1,0 +1,7 @@
+myenv/
+__pycache__/
+*.pyc
+.env
+uploads/*
+!uploads/.gitkeep
+__MACOSX
